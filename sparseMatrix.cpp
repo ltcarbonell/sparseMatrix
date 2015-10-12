@@ -29,7 +29,7 @@ public:
         value = NULL;
         next = NULL;
     }
-    void store(int index, T value) {
+    void insert(int index, T value) {
         LinkedList *current = this;
         LinkedList *previous = NULL;
         LinkedList *node = new LinkedList(index);
@@ -48,7 +48,7 @@ public:
         return;
     }
     
-    T fetch(int index) {
+    T get(int index) {
         LinkedList *current = this;
         T value = NULL;
         while (current != NULL && current->index != index) {
@@ -76,15 +76,15 @@ public:
         start = new LinkedList<T>();
         this->index = index;
     }
-    void store(int index, T value) {
+    void insert(int index, T value) {
         if (index >= 0 && index < this->index) {
             if (value != NULL)
-                start->store(index, value);
+                start->insert(index, value);
         }
     }
-    T fetch(int index) {
+    T get(int index) {
         if (index >= 0 && index < this->index) {
-            return start->fetch(index);
+            return start->get(index);
         }
         else {
             return NULL;
@@ -120,31 +120,31 @@ public:
         sparsearray = newArr;
         
     }
-    void store(int rowindex, int colindex, T value) {
-        if (rowindex < 0 || rowindex > rows) {
-            cout<<"row index out of bounds"<<endl;
+    void insert(int rowIndex, int colIndex, T value) {
+        if (rowIndex < 0 || rowIndex > rows) {
+            cout<<" storing " << rowIndex <<" row index out of bounds " << rows <<endl;
             return;
         }
-        if (colindex < 0 || colindex > columns) {
-            cout<<"col index out of bounds"<<endl;
+        if (colIndex < 0 || colIndex > columns) {
+            cout<<" storing " << colIndex <<" col index out of bounds"<< columns << endl;
             return;
         }
-        sparsearray[rowindex]->store(colindex, value);
+        sparsearray[rowIndex]->insert(colIndex, value);
     }
     
-    T get(int rowindex, int colindex) {
-        if (rowindex < 0 || rowindex > rows) {
-            cout<<"row index out of bounds"<<endl;
+    T get(int rowIndex, int colIndex) {
+        if (rowIndex < 0 || rowIndex > rows) {
+            cout<<"getting row index out of bounds"<<endl;
             return 0;
         }
-        if (colindex < 0 || colindex > columns) {
-            cout<<"col index out of bounds"<<endl;
+        if (colIndex < 0 || colIndex > columns) {
+            cout<<"getting col index out of bounds"<<endl;
             return 0;
         }
-        return (sparsearray[rowindex]->fetch(colindex));
+        return (sparsearray[rowIndex]->get(colIndex));
     }
     
-    /********* Required methods **********/
+/*************************** Required methods *************************************/
     void read() {
         cout << "Enter number of rows, columns: " << endl;
         int terms, index;
@@ -164,7 +164,7 @@ public:
                 cin >> index;
                 index -= 1;
                 cin >> value;
-                this -> store(i, index, value);
+                this->insert(i, index, value);
                 
             }
         }
@@ -172,13 +172,13 @@ public:
     }
     
     void print() {
-        int colCount = this -> columns;
-        int rowCount = this -> rows;
+        int colCount = this->columns;
+        int rowCount = this->rows;
         cout << "rows = " << rowCount << " columns = " << colCount << endl;
         for (int i = 0; i < rowCount; i++) {
             cout << "row " << i+1 << "[";
             for (int j = 0; j < colCount; j++) {
-                if (this -> get(i, j) != NULL) {
+                if (this->get(i, j) != NULL) {
                     cout << " col:" << j+1 << " val= " << this->get(i, j) << " ";
                 }
             }
@@ -187,14 +187,17 @@ public:
         cout << endl;
     }
     
-    void mask(SparseMatrix<bool> boolMatrix, SparseMatrix<int> resultMatrix) {
-        for (int rowIndex = 0; rowIndex < this->rows; rowIndex++) {
-            for (int colIndex = 0; colIndex < this->columns; colIndex++) {
+    void mask(SparseMatrix<bool> boolMatrix, SparseMatrix<int> &resultMatrix) {
+        resultMatrix.rows = this->rows;
+        resultMatrix.columns = this-> columns;
+        while (resultMatrix.rows > maxRows) {
+            resultMatrix.resize();
+        }
+        for (int rowIndex = 0; rowIndex < rows; rowIndex++) {
+            for (int colIndex = 0; colIndex < columns; colIndex++) {
+                T value = get(rowIndex, colIndex);
                 if (boolMatrix.get(rowIndex, colIndex) == true) {
-                    int value = this -> get(rowIndex, colIndex);
-                    resultMatrix.store(rowIndex, colIndex, value);
-                } else {
-                    resultMatrix.store(rowIndex, colIndex, NULL);
+                    resultMatrix.insert(rowIndex, colIndex, value);
                 }
             }
         }
@@ -222,7 +225,7 @@ int main() {
     cout << "Matrix B, the boolean mask matrix:" << endl;
     b->print();
     a->mask(*b,*c);
-    //cout << "Matrix C, result:" << endl;
+    cout << "Matrix C, result:" << endl;
     c->print();
     
 }
