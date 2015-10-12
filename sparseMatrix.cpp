@@ -11,223 +11,218 @@
 #include <string>
 using namespace std;
 
-/* Linked List Declaration */
-
+/********** Linked List **********/
 template<class T>
-class LinkedList
-{
+class LinkedList {
 private:
     int index;
     T value;
-    LinkedList *nextindex;
+    LinkedList *next;
 public:
-    LinkedList(int index)
-    {
+    LinkedList(int index) {
         this->index = index;
-        nextindex = NULL;
+        next = NULL;
         value = NULL;
     }
-    LinkedList()
-    {
+    LinkedList() {
         index = -1;
         value = NULL;
-        nextindex = NULL;
+        next = NULL;
     }
-    void store(int index, T value)
-    {
+    void store(int index, T value) {
         LinkedList *current = this;
         LinkedList *previous = NULL;
         LinkedList *node = new LinkedList(index);
         node->value = value;
-        while (current != NULL && current->index < index)
-        {
+        while (current != NULL && current->index < index) {
             previous = current;
-            current = current->nextindex;
+            current = current->next;
         }
-        if (current == NULL)
-        {
-            previous->nextindex = node;
+        if (current == NULL) {
+            previous->next = node;
         }
-        else
-        {
-            if (current->index == index)
-            {
-                cout<<"DUPLICATE INDEX"<<endl;
-                return;
-            }
-            previous->nextindex = node;
-            node->nextindex = current;
+        else {
+            previous->next = node;
+            node->next = current;
         }
         return;
     }
     
-    T fetch(int index)
-    {
+    T fetch(int index) {
         LinkedList *current = this;
-        int value = NULL;
-        while (current != NULL && current->index != index)
-        {
-            current = current->nextindex;
+        T value = NULL;
+        while (current != NULL && current->index != index) {
+            current = current->next;
         }
-        if (current != NULL)
-        {
+        if (current != NULL) {
             value = current->value;
         }
-        else
-        {
+        else {
             value = NULL;
         }
         return value;
     }
-    
-    int elementCount()
-    {
-        int elementCount = 0;
-        LinkedList *current = this->nextindex;
-        for ( ; (current != NULL); current = current->nextindex)
-        {
-            elementCount++;
-        }
-        return elementCount;
-    }
 };
-/*
- * Class SpareArray Declaration
- */
+
+
+/********** SparseArray **********/
 template<class T>
-class SparseArray
-{
+class SparseArray {
 private:
     LinkedList<T> *start;
     int index;
 public:
-    SparseArray(int index)
-    {
+    SparseArray(int index) {
         start = new LinkedList<T>();
         this->index = index;
     }
-    void store(int index, T value)
-    {
-        if (index >= 0 && index < this->index)
-        {
+    void store(int index, T value) {
+        if (index >= 0 && index < this->index) {
             if (value != NULL)
                 start->store(index, value);
         }
-        else
-        {
-            cout<<"INDEX OUT OF BOUNDS"<<endl;
-        }
     }
-    T fetch(int index)
-    {
-        if (index >= 0 && index < this->index)
+    T fetch(int index) {
+        if (index >= 0 && index < this->index) {
             return start->fetch(index);
-        else
-        {
-            cout<<"INDEX OUT OF BOUNDS"<<endl;
+        }
+        else {
             return NULL;
         }
     }
-    int elementCount()
-    {
-        return start->elementCount();
-    }
 };
 
-/*
- * Class SparseMatrix Declaration
- */
+
+/********** SparseMatrix **********/
 template<class T>
-class SparseMatrix
-{
+class SparseMatrix {
 private:
-    int N;
+    int rows, columns;
     SparseArray<T> **sparsearray;
+    // set as a 10X10 matrix by default
+    int maxRows = 10;
 public:
-    SparseMatrix(int N)
-    {
-        this->N = N;
-        sparsearray = new SparseArray<T>* [N];
-        for (int index = 0; index < N; index++)
-        {
-            sparsearray[index] = new SparseArray<T>(N);
+    SparseMatrix() {
+        sparsearray = new SparseArray<T>* [maxRows];
+        for (int index = 0; index < maxRows; index++) {
+            sparsearray[index] = new SparseArray<T>(maxRows);
         }
     }
-    void store(int rowindex, int colindex, int value)
-    {
-        if (rowindex < 0 || rowindex > N)
-        {
+    void resize() {
+        int newSize = maxRows * 2;
+        SparseArray<T> **newArr = new SparseArray<T>* [newSize];
+        for (int index = 0; index < newSize; index++) {
+            sparsearray[index] = new SparseArray<T>(newSize);
+        }
+        memcpy(newArr, sparsearray, maxRows * sizeof(SparseArray<T>));
+        this->maxRows = newSize;
+        delete [] sparsearray;
+        sparsearray = newArr;
+        
+    }
+    void store(int rowindex, int colindex, T value) {
+        if (rowindex < 0 || rowindex > rows) {
             cout<<"row index out of bounds"<<endl;
             return;
         }
-        if (colindex < 0 || colindex > N)
-        {
+        if (colindex < 0 || colindex > columns) {
             cout<<"col index out of bounds"<<endl;
             return;
         }
         sparsearray[rowindex]->store(colindex, value);
     }
     
-    int get(int rowindex, int colindex)
-    {
-        if (rowindex < 0 || colindex > N)
-        {
+    T get(int rowindex, int colindex) {
+        if (rowindex < 0 || rowindex > rows) {
             cout<<"row index out of bounds"<<endl;
             return 0;
         }
-        if (rowindex < 0 || colindex > N)
-        {
+        if (colindex < 0 || colindex > columns) {
             cout<<"col index out of bounds"<<endl;
             return 0;
         }
         return (sparsearray[rowindex]->fetch(colindex));
     }
-    int elementCount()
-    {
-        int count = 0;
-        for (int index = 0; index < N; index++)
-        {
-            count += sparsearray[index]->elementCount();
+    
+    /********* Required methods **********/
+    void read() {
+        cout << "Enter number of rows, columns: " << endl;
+        int terms, index;
+        T value;
+        cin >> this->rows;
+        cin >> this->columns;
+        while (rows > maxRows) {
+            resize();
         }
-        return count;
+        for (int i = 0; i < rows; i++) {
+            cout << "Enter number of terms in row " << i+1 << endl;
+            cin >> terms;
+            if (terms != 0) {
+                cout << "Enter element's column, and value of each term in row " << i+1 << endl;
+            }
+            for (int j = 0; j < terms; j++) {
+                cin >> index;
+                index -= 1;
+                cin >> value;
+                this -> store(i, index, value);
+                
+            }
+        }
+        cout << endl;
     }
-};
-/*
- * Main
- */
-int main()
-{
-    bool iarray[3][3];
-    iarray[0][0] = true;
-    iarray[0][1] = NULL;
-    iarray[0][2] = true;
-    iarray[1][0] = NULL;
-    iarray[1][1] = false;
-    iarray[1][2] = NULL;
-    iarray[2][0] = true;
-    iarray[2][1] = true;
-    iarray[2][2] = NULL;
-    SparseMatrix<bool> *sparseMatrix = new SparseMatrix<bool>(3);
-    for (int rowindex = 0; rowindex < 3; rowindex++)
-    {
-        for (int colindex = 0; colindex < 3; colindex++)
-        {
-            sparseMatrix->store(rowindex, colindex, iarray[rowindex][colindex]);
+    
+    void print() {
+        int colCount = this -> columns;
+        int rowCount = this -> rows;
+        cout << "rows = " << rowCount << " columns = " << colCount << endl;
+        for (int i = 0; i < rowCount; i++) {
+            cout << "row " << i+1 << "[";
+            for (int j = 0; j < colCount; j++) {
+                if (this -> get(i, j) != NULL) {
+                    cout << " col:" << j+1 << " val= " << this->get(i, j) << " ";
+                }
+            }
+            cout << "]" << endl;
+        }
+        cout << endl;
+    }
+    
+    void mask(SparseMatrix<bool> boolMatrix, SparseMatrix<int> resultMatrix) {
+        for (int rowIndex = 0; rowIndex < this->rows; rowIndex++) {
+            for (int colIndex = 0; colIndex < this->columns; colIndex++) {
+                if (boolMatrix.get(rowIndex, colIndex) == true) {
+                    int value = this -> get(rowIndex, colIndex);
+                    resultMatrix.store(rowIndex, colIndex, value);
+                } else {
+                    resultMatrix.store(rowIndex, colIndex, NULL);
+                }
+            }
         }
     }
     
-    cout<<"the sparse Matrix is: "<<endl;
-    for (int rowindex = 0; rowindex < 3; rowindex++)
-    {
-        for (int colindex = 0; colindex < 3; colindex++)
-        {
-            if (sparseMatrix->get(rowindex, colindex) == NULL)
-                cout<<"NULL"<< "\t";
-            else
-                cout<<sparseMatrix->get(rowindex, colindex) << "\t";
-        }
-        cout<<endl;
-    }
-    cout<<"The Size of Sparse Matrix is "<<sparseMatrix->elementCount()<<endl;
+    
+};
+
+
+/********** Main **********/
+int main() {
+    
+    SparseMatrix<int> *a = new SparseMatrix<int>();
+    SparseMatrix<bool> *b = new SparseMatrix<bool>();
+    SparseMatrix<int> *c = new SparseMatrix<int>();
+    
+    
+    
+    cout << "Reading Matrix A" << endl;
+    a->read();
+    cout << "Matrix A:" << endl;
+    a->print();
+    cout << "Reading Matrix B" << endl;
+    b->read();
+    cout << "Matrix B, the boolean mask matrix:" << endl;
+    b->print();
+    a->mask(*b,*c);
+    //cout << "Matrix C, result:" << endl;
+    c->print();
     
 }
